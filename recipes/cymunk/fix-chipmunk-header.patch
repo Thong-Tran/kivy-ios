@@ -1,0 +1,50 @@
+diff --git a/cymunk/Chipmunk-Physics/include/chipmunk/chipmunk.h b/cymunk/Chipmunk-Physics/include/chipmunk/chipmunk.h
+--- a/cymunk/Chipmunk-Physics/include/chipmunk/chipmunk.h
++++ b/cymunk/Chipmunk-Physics/include/chipmunk/chipmunk.h
+@@ -214,6 +214,21 @@ cpBool cpSpaceShapeQuery_b(cpSpace *space, cpShape *shape, cpSpaceShapeQueryBloc
+ #endif
+ #endif
+ 
++/// Set the radius of a circle shape.
++void cpCircleShapeSetRadius(cpShape *shape, cpFloat radius);
++/// Set the offset of a circle shape.
++void cpCircleShapeSetOffset(cpShape *shape, cpVect offset);
++
++/// Set the endpoints of a segment shape.
++void cpSegmentShapeSetEndpoints(cpShape *shape, cpVect a, cpVect b);
++/// Set the radius of a segment shape.
++void cpSegmentShapeSetRadius(cpShape *shape, cpFloat radius);
++
++/// Set the vertexes of a poly shape.
++void cpPolyShapeSetVerts(cpShape *shape, int numVerts, cpVect *verts, cpVect offset);
++/// Set the radius of a poly shape.
++void cpPolyShapeSetRadius(cpShape *shape, cpFloat radius);
++
+ 
+ //@}
+ 
+diff --git a/cymunk/chipmunk/chipmunk.h b/cymunk/chipmunk/chipmunk.h
+--- a/cymunk/chipmunk/chipmunk.h
++++ b/cymunk/chipmunk/chipmunk.h
+@@ -214,6 +214,21 @@ cpBool cpSpaceShapeQuery_b(cpSpace *space, cpShape *shape, cpSpaceShapeQueryBloc
+ #endif
+ #endif
+ 
++/// Set the radius of a circle shape.
++void cpCircleShapeSetRadius(cpShape *shape, cpFloat radius);
++/// Set the offset of a circle shape.
++void cpCircleShapeSetOffset(cpShape *shape, cpVect offset);
++
++/// Set the endpoints of a segment shape.
++void cpSegmentShapeSetEndpoints(cpShape *shape, cpVect a, cpVect b);
++/// Set the radius of a segment shape.
++void cpSegmentShapeSetRadius(cpShape *shape, cpFloat radius);
++
++/// Set the vertexes of a poly shape.
++void cpPolyShapeSetVerts(cpShape *shape, int numVerts, cpVect *verts, cpVect offset);
++/// Set the radius of a poly shape.
++void cpPolyShapeSetRadius(cpShape *shape, cpFloat radius);
++
+ 
+ //@}
+ 

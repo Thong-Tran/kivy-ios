@@ -16,6 +16,12 @@ class CymunkRecipe(CythonRecipe):
     depends = ['hostpython']
     cythonize = True
 
+    def prebuild_arch(self, arch):
+        if self.has_marker("patched"):
+            return
+        self.apply_patch("fix-chipmunk-header.patch")
+        self.set_marker("patched")
+
     '''
     def build_arch(self, arch):
         """
