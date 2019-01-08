@@ -603,5 +603,5 @@ def _generate(d, image_xcassets, image_fn, options, icon=False):
             "--out",
             join(image_xcassets, d, out_fn)
         ]
-        print "sips", " ".join(args)
+        print("sips", " ".join(args))
         sh.sips(*args)

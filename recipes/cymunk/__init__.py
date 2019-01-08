@@ -25,7 +25,7 @@ class CymunkRecipe(CythonRecipe):
         self.cythonize_build()
         self.biglink()
     '''
-    
+
     def install(self):
         """
         Do the equivalent of
