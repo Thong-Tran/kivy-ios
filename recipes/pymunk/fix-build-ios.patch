@@ -1,0 +1,627 @@
+diff --git a/pymunk/_libload.py b/pymunk/_libload.py
+index 4e27321..83bbdad 100644
+--- a/pymunk/_libload.py
++++ b/pymunk/_libload.py
+@@ -1,7 +1,7 @@
+ """This module contain functions used to load the chipmunk dll/lib file"""
+ 
+ import os.path
+-import platform
++# import platform
+ import sys, imp, os
+ 
+ def load_library(ffi, libname, debug_lib=True):
+@@ -9,7 +9,7 @@ def load_library(ffi, libname, debug_lib=True):
+     # 32bit python: pymunk/libchipmunk.so, libchipmunk.dylib or chipmunk.dll
+     # 64 bit python pymunk/libchipmunk64.so, libchipmunk.dylib or chipmunk64.dll
+ 
+-    s = platform.system()
++    s = 'Darwin'
+     if sys.maxsize > 2**32:
+         arch = "64"
+     else:
+@@ -20,7 +20,7 @@ def load_library(ffi, libname, debug_lib=True):
+     if s in ('Windows', 'Microsoft'):
+         pattern = "%s.dll"
+     elif s == 'Darwin':
+-        pattern = "lib%s.dylib"
++        pattern = "lib%s.so"
+ 
+     path = os.path.dirname(os.path.abspath(__file__))
+     libfn = pattern % libname
+diff --git a/pymunk/space.py b/pymunk/space.py
+index 4c0d842..4a3f53f 100644
+--- a/pymunk/space.py
++++ b/pymunk/space.py
+@@ -2,13 +2,13 @@ __docformat__ = "reStructuredText"
+ 
+ import weakref
+ from weakref import WeakSet
+-import platform
++# import platform
+ import copy
+ 
+ from . import _chipmunk_cffi
+ cp = _chipmunk_cffi.lib
+-ffi = _chipmunk_cffi.ffi    
+-    
++ffi = _chipmunk_cffi.ffi
++
+ from .vec2d import Vec2d
+ from .body import Body
+ from .collision_handler import CollisionHandler
+@@ -23,15 +23,15 @@ class Space(PickleMixin, object):
+     """Spaces are the basic unit of simulation. You add rigid bodies, shapes
+     and joints to it and then step them all forward together through time.
+ 
+-    A Space can be copied and pickled. Note that any post step callbacks are 
++    A Space can be copied and pickled. Note that any post step callbacks are
+     not copied. Also note that some internal collision cache data is not copied,
+-    which can make the simulation a bit unstable the first few steps of the 
++    which can make the simulation a bit unstable the first few steps of the
+     fresh copy.
+ 
+     Custom properties set on the space will also be copied/pickled.
+ 
+-    Any collision handlers will also be copied/pickled. Note that depending on 
+-    the pickle protocol used there are some restrictions on what functions can 
++    Any collision handlers will also be copied/pickled. Note that depending on
++    the pickle protocol used there are some restrictions on what functions can
+     be copied/pickled.
+ 
+     Example::
+@@ -43,24 +43,24 @@ class Space(PickleMixin, object):
+     """
+ 
+     _pickle_attrs_init = ['threaded']
+-    _pickle_attrs_general = ['iterations', 'gravity', 'damping', 
++    _pickle_attrs_general = ['iterations', 'gravity', 'damping',
+         'idle_speed_threshold', 'sleep_time_threshold', 'collision_slop',
+         'collision_bias', 'collision_persistence', 'threads']
+ 
+     def __init__(self, threaded=False):
+-        """Create a new instance of the Space. 
+-        
++        """Create a new instance of the Space.
++
+         If you set threaded=True the step function will run in threaded mode
+-        which might give a speedup. Note that even when you set threaded=True 
+-        you still have to set Space.threads=2 to actually use more than one 
+-        thread.        
+-        
+-        Also note that threaded mode is not available on Windows, and setting 
++        which might give a speedup. Note that even when you set threaded=True
++        you still have to set Space.threads=2 to actually use more than one
++        thread.
++
++        Also note that threaded mode is not available on Windows, and setting
+         threaded=True has no effect on that platform.
+         """
+-        
+-        self.threaded = threaded and platform.system() != 'Windows' 
+-        if self.threaded:        
++
++        self.threaded = threaded
++        if self.threaded:
+             self._space = ffi.gc(cp.cpHastySpaceNew(), cp.cpHastySpaceFree)
+         else:
+             self._space = ffi.gc(cp.cpSpaceNew(), cp.cpSpaceFree)
+@@ -74,7 +74,7 @@ class Space(PickleMixin, object):
+         self._bodies = set()
+         self._static_body = None
+         self._constraints = set()
+-        
++
+         self._in_step = False
+         self._add_later = set()
+         self._remove_later = set()
+@@ -84,8 +84,8 @@ class Space(PickleMixin, object):
+         return self
+ 
+     def _get_shapes(self):
+-        """A list of all the shapes added to this space 
+-        
++        """A list of all the shapes added to this space
++
+         (includes both static and non-static)
+         """
+         return list(self._shapes.values())
+@@ -103,10 +103,10 @@ class Space(PickleMixin, object):
+         doc="""A list of the constraints added to this space""")
+ 
+     def _get_static_body(self):
+-        """A dedicated static body for the space. 
+-        
+-        You don't have to use it, but because its memory is managed 
+-        automatically with the space its very convenient. 
++        """A dedicated static body for the space.
++
++        You don't have to use it, but because its memory is managed
++        automatically with the space its very convenient.
+         """
+         if self._static_body == None:
+             b = cp.cpSpaceGetStaticBody(self._space)
+@@ -349,33 +349,33 @@ class Space(PickleMixin, object):
+     def _get_threads(self):
+         if self.threaded:
+             return int(cp.cpHastySpaceGetThreads(self._space))
+-        return 1 
++        return 1
+ 
+     def _set_threads(self, n):
+         if self.threaded:
+             cp.cpHastySpaceSetThreads(self._space, n)
+-    threads=property(_get_threads, _set_threads, 
+-        doc="""The number of threads to use for running the step function. 
+-        
+-        Only valid when the Space was created with threaded=True. Currently the 
+-        max limit is 2, setting a higher value wont have any effect. The 
+-        default is 1 regardless if the Space was created with threaded=True, 
+-        to keep determinism in the simulation. Note that Windows does not 
++    threads=property(_get_threads, _set_threads,
++        doc="""The number of threads to use for running the step function.
++
++        Only valid when the Space was created with threaded=True. Currently the
++        max limit is 2, setting a higher value wont have any effect. The
++        default is 1 regardless if the Space was created with threaded=True,
++        to keep determinism in the simulation. Note that Windows does not
+         support the threaded solver.
+         """)
+ 
+ 
+     def step(self, dt):
+-        """Update the space for the given time step. 
+-        
+-        Using a fixed time step is highly recommended. Doing so will increase 
+-        the efficiency of the contact persistence, requiring an order of 
++        """Update the space for the given time step.
++
++        Using a fixed time step is highly recommended. Doing so will increase
++        the efficiency of the contact persistence, requiring an order of
+         magnitude fewer iterations to resolve the collisions in the usual case.
+ 
+-        It is not the same to call step 10 times with a dt of 0.1 and 
+-        calling it 100 times with a dt of 0.01 even if the end result is 
+-        that the simulation moved forward 100 units. Performing  multiple 
+-        calls with a smaller dt creates a more stable and accurate 
++        It is not the same to call step 10 times with a dt of 0.1 and
++        calling it 100 times with a dt of 0.01 even if the end result is
++        that the simulation moved forward 100 units. Performing  multiple
++        calls with a smaller dt creates a more stable and accurate
+         simulation. Therefor it sometimes make sense to have a little for loop
+         around the step call, like in this example:
+ 
+@@ -384,7 +384,7 @@ class Space(PickleMixin, object):
+         >>> steps = 10
+         >>> for x in range(steps): # move simulation forward 0.1 seconds:
+         ...     s.step(0.1 / steps)
+-        
++
+         :param float dt: Time step length
+         """
+ 
+@@ -403,22 +403,22 @@ class Space(PickleMixin, object):
+         for objs in self._remove_later:
+             self.remove(objs)
+         self._remove_later.clear()
+-        
++
+         for key in self._post_step_callbacks:
+-            self._post_step_callbacks[key](self)  
+-        
+-        self._post_step_callbacks = {}  
++            self._post_step_callbacks[key](self)
++
++        self._post_step_callbacks = {}
+ 
+ 
+     def add_collision_handler(self, collision_type_a, collision_type_b):
+-        """Return the :py:class:`CollisionHandler` for collisions between 
++        """Return the :py:class:`CollisionHandler` for collisions between
+         objects of type collision_type_a and collision_type_b.
+ 
+         Fill the desired collision callback functions, for details see the
+         :py:class:`CollisionHandler` object.
+ 
+-        Whenever shapes with collision types (:py:attr:`Shape.collision_type`) 
+-        a and b collide, this handler will be used to process the collision 
++        Whenever shapes with collision types (:py:attr:`Shape.collision_type`)
++        a and b collide, this handler will be used to process the collision
+         events. When a new collision handler is created, the callbacks will all be
+         set to builtin callbacks that perform the default behavior (call the
+         wildcard handlers, and accept all collisions).
+@@ -428,16 +428,16 @@ class Space(PickleMixin, object):
+ 
+         :rtype: :py:class:`CollisionHandler`
+         """
+-        
+-        key = (collision_type_a, collision_type_b) 
++
++        key = (collision_type_a, collision_type_b)
+         if key in self._handlers:
+             return self._handlers[key]
+-        
++
+         h = cp.cpSpaceAddCollisionHandler(self._space, collision_type_a, collision_type_b)
+         ch = CollisionHandler(h, self)
+         self._handlers[key] = ch
+         return ch
+-        
++
+     def add_wildcard_collision_handler(self, collision_type_a):
+         """Add a wildcard collision handler for given collision type.
+ 
+@@ -450,9 +450,9 @@ class Space(PickleMixin, object):
+ 
+         When a new wildcard handler is created, the callbacks will all be
+         set to builtin callbacks that perform the default behavior. (accept
+-        all collisions in :py:func:`~CollisionHandler.begin` and 
++        all collisions in :py:func:`~CollisionHandler.begin` and
+         :py:func:`~CollisionHandler.pre_solve`, or do nothing for
+-        :py:func:`~CollisionHandler.post_solve` and 
++        :py:func:`~CollisionHandler.post_solve` and
+         :py:func:`~CollisionHandler.separate`.
+ 
+         :param int collision_type_a: Collision type
+@@ -461,7 +461,7 @@ class Space(PickleMixin, object):
+ 
+         if collision_type_a in self._handlers:
+             return self._handlers[collision_type_a]
+-            
++
+         h = cp.cpSpaceAddWildcardHandler(self._space, collision_type_a)
+         ch = CollisionHandler(h, self)
+         self._handlers[collision_type_a] = ch
+@@ -478,7 +478,7 @@ class Space(PickleMixin, object):
+         """
+         if None in self._handlers:
+             return self._handlers[None]
+-        
++
+         _h = cp.cpSpaceAddDefaultCollisionHandler(self._space)
+         h = CollisionHandler(_h, self)
+         self._handlers[None] = h
+@@ -505,38 +505,38 @@ class Space(PickleMixin, object):
+ 
+         :param callback_function: The callback function
+         :type callback_function: `func(space : Space, key, *args, **kwargs)`
+-        :param Any key: 
++        :param Any key:
+             This object is used as a key, you can only have one callback
+             for a single object. It is passed on to the callback function.
+         :param args: Optional parameters passed to the callback
+-        :param kwargs: Optional keyword parameters passed on to the callback    
++        :param kwargs: Optional keyword parameters passed on to the callback
+ 
+         :return: True if key was not previously added, False otherwise
+         """
+ 
+         if key in self._post_step_callbacks:
+             return False
+-        
++
+         def f(x):
+             callback_function(self, key, *args, **kwargs)
+-            
++
+         self._post_step_callbacks[key] = f
+         return True
+-        
++
+     def point_query(self, point, max_distance, shape_filter):
+         """Query space at point for shapes within the given distance range.
+ 
+         The filter is applied to the query and follows the same rules as the
+-        collision detection. If a maxDistance of 0.0 is used, the point must 
+-        lie inside a shape. Negative max_distance is also allowed meaning that 
+-        the point must be a under a certain depth within a shape to be 
++        collision detection. If a maxDistance of 0.0 is used, the point must
++        lie inside a shape. Negative max_distance is also allowed meaning that
++        the point must be a under a certain depth within a shape to be
+         considered a match.
+ 
+-        See :py:class:`ShapeFilter` for details about how the shape_filter 
++        See :py:class:`ShapeFilter` for details about how the shape_filter
+         parameter can be used.
+ 
+         .. Note::
+-            Sensor shapes are included in the result (In 
++            Sensor shapes are included in the result (In
+             :py:meth:`Space.point_query_nearest` they are not)
+ 
+         :param point: Where to check for collision in the Space
+@@ -544,22 +544,22 @@ class Space(PickleMixin, object):
+         :param float max_distance: Match only within this distance
+         :param ShapeFilter shape_filter: Only pick shapes matching the filter
+ 
+-        :rtype: [:py:class:`PointQueryInfo`] 
++        :rtype: [:py:class:`PointQueryInfo`]
+         """
+ 
+         self.__query_hits = []
+-        
++
+         @ffi.callback("cpSpacePointQueryFunc")
+         def cf(_shape, point, distance, gradient, data):
+             # space = ffi.from_handle(data)
+             shape = self._get_shape(_shape)
+             p = PointQueryInfo(
+-                shape, 
+-                Vec2d._fromcffi(point), 
+-                distance, 
++                shape,
++                Vec2d._fromcffi(point),
++                distance,
+                 Vec2d._fromcffi(gradient))
+             self.__query_hits.append(p)
+-            
++
+         data = ffi.new_handle(self)
+         cp.cpSpacePointQuery(
+             self._space, tuple(point), max_distance, shape_filter, cf, data)
+@@ -584,16 +584,16 @@ class Space(PickleMixin, object):
+         range.
+ 
+         The filter is applied to the query and follows the same rules as the
+-        collision detection. If a maxDistance of 0.0 is used, the point must 
+-        lie inside a shape. Negative max_distance is also allowed meaning that 
+-        the point must be a under a certain depth within a shape to be 
++        collision detection. If a maxDistance of 0.0 is used, the point must
++        lie inside a shape. Negative max_distance is also allowed meaning that
++        the point must be a under a certain depth within a shape to be
+         considered a match.
+ 
+-        See :py:class:`ShapeFilter` for details about how the shape_filter 
++        See :py:class:`ShapeFilter` for details about how the shape_filter
+         parameter can be used.
+ 
+         .. Note::
+-            Sensor shapes are not included in the result (In 
++            Sensor shapes are not included in the result (In
+             :py:meth:`Space.point_query` they are)
+ 
+         :param point: Where to check for collision in the Space
+@@ -601,21 +601,21 @@ class Space(PickleMixin, object):
+         :param float max_distance: Match only within this distance
+         :param ShapeFilter shape_filter: Only pick shapes matching the filter
+ 
+-        :rtype: :py:class:`PointQueryInfo` or None  
++        :rtype: :py:class:`PointQueryInfo` or None
+         """
+         info = ffi.new("cpPointQueryInfo *")
+         _shape = cp.cpSpacePointQueryNearest(
+-            self._space, 
+-            tuple(point), max_distance, 
++            self._space,
++            tuple(point), max_distance,
+             shape_filter, info)
+-        
++
+         shape = self._get_shape(_shape)
+ 
+         if shape != None:
+             return PointQueryInfo(
+-                shape, 
+-                Vec2d._fromcffi(info.point), 
+-                info.distance, 
++                shape,
++                Vec2d._fromcffi(info.point),
++                info.distance,
+                 Vec2d._fromcffi(info.gradient))
+         return None
+ 
+@@ -627,11 +627,11 @@ class Space(PickleMixin, object):
+         The filter is applied to the query and follows the same rules as the
+         collision detection.
+ 
+-        See :py:class:`ShapeFilter` for details about how the shape_filter 
++        See :py:class:`ShapeFilter` for details about how the shape_filter
+         parameter can be used.
+ 
+         .. Note::
+-            Sensor shapes are included in the result (In 
++            Sensor shapes are included in the result (In
+             :py:meth:`Space.segment_query_first` they are not)
+ 
+         :param start: Starting point
+@@ -643,20 +643,20 @@ class Space(PickleMixin, object):
+         """
+ 
+         self.__query_hits = []
+-        
++
+         @ffi.callback("cpSpaceSegmentQueryFunc")
+         def cf(_shape, point, normal, alpha, data):
+             shape = self._get_shape(_shape)
+             p = SegmentQueryInfo(
+                 shape, Vec2d._fromcffi(point), Vec2d._fromcffi(normal), alpha)
+             self.__query_hits.append(p)
+-            
++
+         data = ffi.new_handle(self)
+         cp.cpSpaceSegmentQuery(
+-            self._space, 
+-            tuple(start), tuple(end), 
+-            radius, 
+-            shape_filter, cf, 
++            self._space,
++            tuple(start), tuple(end),
++            radius,
++            shape_filter, cf,
+             data)
+         return self.__query_hits
+ 
+@@ -668,27 +668,27 @@ class Space(PickleMixin, object):
+         collision detection.
+ 
+         .. Note::
+-            Sensor shapes are not included in the result (In 
++            Sensor shapes are not included in the result (In
+             :py:meth:`Space.segment_query` they are)
+ 
+-        See :py:class:`ShapeFilter` for details about how the shape_filter 
++        See :py:class:`ShapeFilter` for details about how the shape_filter
+         parameter can be used.
+ 
+         :rtype: :py:class:`SegmentQueryInfo` or None
+         """
+         info = ffi.new("cpSegmentQueryInfo *")
+         _shape = cp.cpSpaceSegmentQueryFirst(
+-            self._space, 
+-            tuple(start), tuple(end), 
+-            radius, shape_filter, 
++            self._space,
++            tuple(start), tuple(end),
++            radius, shape_filter,
+             info)
+ 
+         shape = self._get_shape(_shape)
+         if shape != None:
+             return SegmentQueryInfo(
+-                shape, 
+-                Vec2d._fromcffi(info.point), 
+-                Vec2d._fromcffi(info.normal), 
++                shape,
++                Vec2d._fromcffi(info.point),
++                Vec2d._fromcffi(info.normal),
+                 info.alpha)
+         return None
+ 
+@@ -713,7 +713,7 @@ class Space(PickleMixin, object):
+         def cf(_shape, data):
+             shape = self._get_shape(_shape)
+             self.__query_hits.append(shape)
+-        
++
+         data = ffi.new_handle(self)
+         cp.cpSpaceBBQuery(self._space, bb._bb, shape_filter, cf, data)
+         return self.__query_hits
+@@ -738,7 +738,7 @@ class Space(PickleMixin, object):
+             point_set = ContactPointSet._from_cp(_points)
+             info = ShapeQueryInfo(shape, point_set)
+             self.__query_hits.append(info)
+-            
++
+         data = ffi.new_handle(self)
+         cp.cpSpaceShapeQuery(self._space, shape._shape, cf, data)
+ 
+@@ -746,32 +746,32 @@ class Space(PickleMixin, object):
+ 
+ 
+     def debug_draw(self, options):
+-        """Debug draw the current state of the space using the supplied drawing 
+-        options.        
++        """Debug draw the current state of the space using the supplied drawing
++        options.
+ 
+-        If you use a graphics backend that is already supported, such as pygame 
+-        and pyglet, you can use the predefined options in their x_util modules, 
++        If you use a graphics backend that is already supported, such as pygame
++        and pyglet, you can use the predefined options in their x_util modules,
+         for example :py:class:`pygame_util.DrawOptions`.
+ 
+-        Its also possible to write your own graphics backend, see 
++        Its also possible to write your own graphics backend, see
+         :py:class:`SpaceDebugDrawOptions`.
+ 
+-        If you require any advanced or optimized drawing its probably best to 
+-        not use this funtion for the drawing since its meant for debugging 
+-        and quick scripting. 
++        If you require any advanced or optimized drawing its probably best to
++        not use this funtion for the drawing since its meant for debugging
++        and quick scripting.
+ 
+         :type options: :py:class:`SpaceDebugDrawOptions`
+         """
+         h = ffi.new_handle(self)
+         # we need to hold h until the end of cpSpaceDebugDraw to prevent GC
+         options._options.data = h
+-        
++
+         with options:
+             cp.cpSpaceDebugDraw(self._space, options._options)
+-        
++
+     def __getstate__(self):
+         """Return the state of this object
+-        
++
+         This method allows the usage of the :mod:`copy` and :mod:`pickle`
+         modules with this class.
+         """
+@@ -782,7 +782,7 @@ class Space(PickleMixin, object):
+         d['special'].append(('constraints', self.constraints))
+         if self._static_body != None:
+             d['special'].append(('_static_body', self._static_body))
+-        
++
+         handlers = []
+         for k,v in self._handlers.items():
+             h = {}
+@@ -795,9 +795,9 @@ class Space(PickleMixin, object):
+             if v._separate_base != None:
+                 h['_separate_base'] = v._separate_base
+             handlers.append((k,h))
+-            
++
+         d['special'].append(('_handlers', handlers))
+-            
++
+         return d
+ 
+     def __setstate__(self, state):
+@@ -807,7 +807,7 @@ class Space(PickleMixin, object):
+         modules with this class.
+         """
+         super(Space, self).__setstate__(state)
+-        
++
+         for k,v in state['special']:
+             if k == 'shapes':
+                 self.add(*v)
+@@ -827,13 +827,13 @@ class Space(PickleMixin, object):
+                     else:
+                         h = self.add_wildcard_collision_handler(k)
+                     if '_begin_base' in hd:
+-                        h.begin = hd['_begin_base'] 
++                        h.begin = hd['_begin_base']
+                     if '_pre_solve_base' in hd:
+-                        h.pre_solve = hd['_pre_solve_base'] 
++                        h.pre_solve = hd['_pre_solve_base']
+                     if '_post_solve_base' in hd:
+-                        h.post_solve = hd['_post_solve_base'] 
++                        h.post_solve = hd['_post_solve_base']
+                     if '_separate_base' in hd:
+-                        h.separate = hd['_separate_base'] 
++                        h.separate = hd['_separate_base']
+ 
+     def copy(self):
+         """Create a deep copy of this space."""
+diff --git a/setup.py b/setup.py
+index 56df1b7..9ee427b 100644
+--- a/setup.py
++++ b/setup.py
+@@ -22,7 +22,7 @@ def get_arch():
+ def get_library_name():
+     libname = 'chipmunk'
+     if platform.system() == 'Darwin':
+-        libname = "lib" + libname + ".dylib"
++        libname = "lib" + libname + ".so"
+     elif platform.system() == 'Linux':
+         libname = "lib" + libname + ".so"
+     elif platform.system() == 'Windows':
+@@ -204,7 +204,7 @@ extensions = [("pymunk.chipmunk", {
+ 
+ extensions = [Extension("pymunk.chipmunk", sources)]
+ 
+-class bdist_wheel_universal_extension(bdist_wheel):
++class bdist_wheel_universal_extension(object):
+     """
+     bdist_wheel give overly strict tags for python packages that uses native 
+     dynamic linked library called from cffi at runtime.
+@@ -239,4 +239,5 @@ setup(
+     extras_require = {'dev': ['pyglet','pygame','sphinx']},    
+     test_suite = "pymunk.tests",
+     ext_modules = extensions,
++    zip_safe = True,
+ )
