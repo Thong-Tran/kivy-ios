@@ -2,7 +2,9 @@ from toolchain import Recipe, shprint
 from os.path import join
 import sh
 import os
+import logging
 
+logger = logging.getLogger(__name__)
 
 class Python2Recipe(Recipe):
     version = "2.7.1"
@@ -14,9 +16,9 @@ class Python2Recipe(Recipe):
 
     def init_with_ctx(self, ctx):
         super(Python2Recipe, self).init_with_ctx(ctx)
-        self.set_python(self, 2.7)
+        self.set_python(self, "2.7")
         ctx.python_ver_dir = "python2.7"
-        ctx.python_prefix = join(ctx.dist_dir, "root", "python")
+        ctx.python_prefix = join(ctx.dist_dir, "root", "python2")
         ctx.site_packages_dir = join(
             ctx.python_prefix, "lib", ctx.python_ver_dir, "site-packages")
 
@@ -75,7 +77,7 @@ class Python2Recipe(Recipe):
                 "install",
                 "CROSS_COMPILE_TARGET=yes",
                 "HOSTPYTHON={}".format(self.ctx.hostpython),
-                "prefix={}".format(join(self.ctx.dist_dir, "root", "python")),
+                "prefix={}".format(join(self.ctx.dist_dir, "root", "python2")),
                 _env=build_env)
         self.reduce_python()
 
@@ -115,17 +117,17 @@ class Python2Recipe(Recipe):
             fd.writelines(lines)
 
     def reduce_python(self):
-        print("Reduce python")
+        logger.info("Reduce python")
         oldpwd = os.getcwd()
         try:
-            print("Remove files unlikely to be used")
-            os.chdir(join(self.ctx.dist_dir, "root", "python"))
+            logger.info("Remove files unlikely to be used")
+            os.chdir(join(self.ctx.dist_dir, "root", "python2"))
             sh.rm("-rf", "share")
             sh.rm("-rf", "bin")
-            os.chdir(join(self.ctx.dist_dir, "root", "python", "lib"))
+            os.chdir(join(self.ctx.dist_dir, "root", "python2", "lib"))
             sh.rm("-rf", "pkgconfig")
             sh.rm("libpython2.7.a")
-            os.chdir(join(self.ctx.dist_dir, "root", "python", "lib", "python2.7"))
+            os.chdir(join(self.ctx.dist_dir, "root", "python2", "lib", "python2.7"))
             sh.find(".", "-iname", "*.pyc", "-exec", "rm", "{}", ";")
             sh.find(".", "-iname", "*.py", "-exec", "rm", "{}", ";")
             #sh.find(".", "-iname", "test*", "-exec", "rm", "-rf", "{}", ";")
@@ -133,7 +135,7 @@ class Python2Recipe(Recipe):
             sh.rm("-rf", sh.glob("lib*"))
 
             # now create the zip.
-            print("Create a python27.zip")
+            logger.info("Create a python27.zip")
             sh.rm("config/libpython2.7.a")
             sh.rm("config/python.o")
             sh.rm("config/config.c.in")

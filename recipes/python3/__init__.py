@@ -3,6 +3,9 @@ from os.path import join
 import sh
 import shutil
 import os
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class Python3Recipe(Recipe):
@@ -14,7 +17,7 @@ class Python3Recipe(Recipe):
 
     def init_with_ctx(self, ctx):
         super(Python3Recipe, self).init_with_ctx(ctx)
-        self.set_python(self, 3.7)
+        self.set_python(self, "3.7")
         ctx.python_ver_dir = "python3.7"
         ctx.python_prefix = join(ctx.dist_dir, "root", "python3")
         ctx.site_packages_dir = join(
@@ -104,10 +107,10 @@ class Python3Recipe(Recipe):
         self.reduce_python()
 
     def reduce_python(self):
-        print("Reduce python")
+        logger.info("Reduce python")
         oldpwd = os.getcwd()
         try:
-            print("Remove files unlikely to be used")
+            logger.info("Remove files unlikely to be used")
             os.chdir(join(self.ctx.dist_dir, "root", "python3"))
             # os.execve("/bin/bash", ["/bin/bash"], env=os.environ)
             sh.rm("-rf", "bin", "share")
@@ -150,7 +153,7 @@ class Python3Recipe(Recipe):
             sh.find(".", "-name", "__pycache__", "-type", "d", "-delete")
 
             # create the lib zip
-            print("Create a python3.7.zip")
+            logger.info("Create a python3.7.zip")
             sh.mv("config-3.7m-darwin", "..")
             sh.mv("site-packages", "..")
             sh.zip("-r", "../python37.zip", sh.glob("*"))

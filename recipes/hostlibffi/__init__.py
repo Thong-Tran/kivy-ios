@@ -1,7 +1,9 @@
 from toolchain import Recipe, shprint
 import sh
 from os.path import exists
+import logging
 
+logger = logging.getLogger(__name__)
 
 class LibffiRecipe(Recipe):
     version = "3.2.1"
@@ -13,11 +15,14 @@ class LibffiRecipe(Recipe):
 
     def build_all(self):
         filtered_archs = self.filtered_archs
-        print("Build {} for {} (filtered)".format(
+        logger.info("Build {} for {} (filtered)".format(
             self.name,
             ", ".join([x.arch for x in filtered_archs])))
         for arch in self.filtered_archs:
             self.build(arch)
+
+        # since we don't run cache_execution, call this here for `status`
+        self.update_state("{}.build_all".format(self.name), True)
 
     def prebuild_arch(self, arch):
         if self.has_marker("patched"):

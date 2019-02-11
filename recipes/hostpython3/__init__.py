@@ -3,6 +3,9 @@ from os.path import join, exists
 import os
 import sh
 import shutil
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class Hostpython3Recipe(Recipe):
@@ -14,12 +17,12 @@ class Hostpython3Recipe(Recipe):
 
     def init_with_ctx(self, ctx):
         super(Hostpython3Recipe, self).init_with_ctx(ctx)
-        self.set_hostpython(self, 3.7)
+        self.set_hostpython(self, "3.7")
         self.ctx.so_suffix = ".cpython-37m-darwin.so"
         self.ctx.hostpython = join(self.ctx.dist_dir, "hostpython3", "bin", "python")
         self.ctx.hostpgen = join(self.ctx.dist_dir, "hostpython3", "bin", "pgen")
-        print("Global: hostpython located at {}".format(self.ctx.hostpython))
-        print("Global: hostpgen located at {}".format(self.ctx.hostpgen))
+        logger.info("Global: hostpython located at {}".format(self.ctx.hostpython))
+        logger.info("Global: hostpgen located at {}".format(self.ctx.hostpgen))
 
     def prebuild_arch(self, arch):
         if self.has_marker("patched"):
