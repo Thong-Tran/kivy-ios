@@ -1,0 +1,10 @@
+diff --git a/setup.py b/setup.py
+index 7b657e2..ea31aa6 100644
+--- a/setup.py
++++ b/setup.py
+@@ -338,4 +338,4 @@ setup(name='ffpyplayer',
+       package_data={'ffpyplayer': ['clib/misc.h']},
+       data_files=get_wheel_data(),
+       cmdclass=cmdclass, ext_modules=ext_modules,
+-      setup_requires=['cython'])
++      setup_requires=['cython'] if have_cython else [])

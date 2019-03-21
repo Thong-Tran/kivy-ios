@@ -1,0 +1,12 @@
+diff --git a/ffpyplayer/pic.pyx b/ffpyplayer/pic.pyx
+index d0aaaa6..3fc77e1 100644
+--- a/ffpyplayer/pic.pyx
++++ b/ffpyplayer/pic.pyx
+@@ -55,6 +55,7 @@ Copy the image:
+ __all__ = ('Image', 'SWScale', 'get_image_size', 'ImageLoader')
+
+ include "includes/inline_funcs.pxi"
++include 'includes/ffmpeg.pxi'
+
+ from cpython.ref cimport PyObject
+ from cython cimport view as cyview
