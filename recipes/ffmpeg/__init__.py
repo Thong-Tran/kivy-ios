@@ -4,7 +4,7 @@ import sh
 
 
 class FFMpegRecipe(Recipe):
-    version = "2.6.3"
+    version = "4.1.1"
     url = "http://www.ffmpeg.org/releases/ffmpeg-{version}.tar.bz2"
     include_per_arch = True
     include_dir = "dist/include"
@@ -41,6 +41,7 @@ class FFMpegRecipe(Recipe):
             "--disable-vdpau",
             "--disable-vaapi",
             "--disable-dct",
+            '--disable-videotoolbox',
 
             # disable binaries / doc
             "--enable-cross-compile",

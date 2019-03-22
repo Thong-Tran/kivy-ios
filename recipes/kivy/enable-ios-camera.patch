@@ -1,0 +1,57 @@
+diff --git a/kivy/core/camera/__init__.py b/kivy/core/camera/__init__.py
+index 6a79e6bd5..721e8cc26 100644
+--- a/kivy/core/camera/__init__.py
++++ b/kivy/core/camera/__init__.py
+@@ -136,7 +136,7 @@ class CameraBase(EventDispatcher):
+ # Load the appropriate providers
+ providers = ()
+
+-if platform == 'macosx':
++if platform in ('macosx', 'ios'):
+     providers += (('avfoundation', 'camera_avfoundation',
+                    'CameraAVFoundation'), )
+ elif platform == 'android':
+diff --git a/setup.py b/setup.py
+index 0c3e2e46d..01964249e 100644
+--- a/setup.py
++++ b/setup.py
+@@ -401,6 +401,7 @@ if platform == 'ios':
+     print('Kivy-IOS project located at {0}'.format(kivy_ios_root))
+     c_options['use_ios'] = True
+     c_options['use_sdl2'] = True
++    c_options['use_avfoundation'] = True
+
+ elif platform == 'darwin':
+     if c_options['use_osx_frameworks']:
+diff --git a/kivy/core/camera/camera_avfoundation.pyx b/kivy/core/camera/camera_avfoundation.pyx
+index 084a70dba..1b2d63df3 100644
+--- a/kivy/core/camera/camera_avfoundation.pyx
++++ b/kivy/core/camera/camera_avfoundation.pyx
+@@ -62,7 +62,7 @@ class CameraAVFoundation(CameraBase):
+         self._resolution = (width, height)
+
+         if self._texture is None or self._texture.size != self._resolution:
+-            self._texture = Texture.create(self._resolution)
++            self._texture = Texture.create(self._resolution, colorfmt='bgra')
+             self._texture.flip_vertical()
+             self.dispatch('on_load')
+
+diff --git a/kivy/core/camera/camera_avfoundation_implem.m b/kivy/core/camera/camera_avfoundation_implem.m
+index e6e64fae9..c8382ceaa 100644
+--- a/kivy/core/camera/camera_avfoundation_implem.m
++++ b/kivy/core/camera/camera_avfoundation_implem.m
+@@ -232,6 +232,15 @@ - (CameraFrame*)getOutput;
+
+         [mCaptureSession addInput:mCaptureDeviceInput];
+         [mCaptureSession addOutput:mCaptureDecompressedVideoOutput];
++
++        // Does not work! This is the preferred way (hardware acceleration) to change pixel buffer orientation.
++        // I'm now using cvtranspose and cvflip instead, which takes cpu cycles.
++        AVCaptureConnection *connection = [[mCaptureDecompressedVideoOutput connections] objectAtIndex:0];
++        if([connection isVideoOrientationSupported]) {
++            NSLog(@"Setting pixel buffer orientation");
++            connection.videoOrientation = AVCaptureVideoOrientationPortrait;
++        }
++
+         [mCaptureSession startRunning];
+         [localpool drain];
