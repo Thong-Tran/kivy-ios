@@ -27,7 +27,15 @@ diff --git a/kivy/core/camera/camera_avfoundation.pyx b/kivy/core/camera/camera_
 index 084a70dba..1b2d63df3 100644
 --- a/kivy/core/camera/camera_avfoundation.pyx
 +++ b/kivy/core/camera/camera_avfoundation.pyx
-@@ -62,7 +62,7 @@ class CameraAVFoundation(CameraBase):
+@@ -56,19 +56,24 @@ class CameraAVFoundation(CameraBase):
+         avf_camera_get_image(storage.camera,
+             &width, &height, &rowsize, &data)
+
+-        if data == NULL:
++        print(len(data), rowsize * height)
++        if data == NULL:
+             return
+
          self._resolution = (width, height)
 
          if self._texture is None or self._texture.size != self._resolution:
@@ -36,6 +44,19 @@ index 084a70dba..1b2d63df3 100644
              self._texture.flip_vertical()
              self.dispatch('on_load')
 
+-        self._buffer = <bytes>data[:rowsize * height]
+-        self._format = 'bgra'
+-        self._copy_to_gpu()
++        try:
++            self._buffer = <bytes>data[:rowsize * height]
++            self._format = 'bgra'
++            self._copy_to_gpu()
++        except Exception as e:
++            import traceback
++            traceback.print_exc()
+
+     def start(self):
+         cdef _AVStorage storage = <_AVStorage>self._storage
 diff --git a/kivy/core/camera/camera_avfoundation_implem.m b/kivy/core/camera/camera_avfoundation_implem.m
 index e6e64fae9..c8382ceaa 100644
 --- a/kivy/core/camera/camera_avfoundation_implem.m

@@ -10,11 +10,11 @@ class FFPyplayerRecipe(CythonRecipe):
     version = "v4.1.0"
     url = "https://github.com/michele-comitini/ffpyplayer/archive/visibility-of-functions-in-misc.zip"
     library = "libffpyplayer.a"
-    depends = ["python", "ffmpeg"]
+    depends = ["python"]
     pbx_frameworks = [
         "CoreVideo", "CoreMedia", "CoreImage", "AVFoundation", "UIKit",
-        "CoreMotion"]
-    pbx_libraries = ["libiconv"]
+        "CoreMotion", 'VideoToolbox']
+    # pbx_libraries = ["libiconv"]
     pre_build_ext = True
 
     def prebuild_arch(self, arch):
@@ -22,7 +22,16 @@ class FFPyplayerRecipe(CythonRecipe):
         if  self.has_marker("patched"):
             return
         self.apply_patch('fix-cython.patch')
-        # self.apply_patch('fix.patch')
+
+        mobile_ffmpeg_git = 'https://github.com/tanersener/mobile-ffmpeg/archive/v4.2.zip'
+        a
+        ffmpeg_config = (
+        ' --disable-armv7 --disable-armv7s --disable-i386 --disable-arm64e'
+        ' --enable-ios-audiotoolbox --enable-ios-avfoundation --enable-ios-coreimage  --enable-ios-bzip2 --enable-ios-videotoolbox --enable-ios-zlib'
+        ' --enable-gmp'
+        ' --enable-opus --enable-shine --enable-soxr --enable-twolame --enable-speex'
+        ' --enable-libvpx --enable-snappy'
+        )
 
     def get_recipe_env(self, arch):
         env = super(FFPyplayerRecipe, self).get_recipe_env(arch)
@@ -36,13 +45,15 @@ class FFPyplayerRecipe(CythonRecipe):
             "common", "sdl2")
         env["SDL_LIB_DIR"] = join(self.ctx.dist_dir, 'lib')
 
-        env["FFMPEG_INCLUDE_DIR"] = join(self.ctx.dist_dir, "include",
-            arch.arch, "ffmpeg")
-        env["FFMPEG_LIB_DIR"] = join(self.get_recipe(
-            'ffmpeg', self.ctx).get_build_dir(arch.arch), "dist", 'lib')
+        # env["FFMPEG_INCLUDE_DIR"] = join(self.ctx.dist_dir, "include",
+        #                                 arch.arch, "ffmpeg")
+        # env["FFMPEG_LIB_DIR"] = join(self.get_recipe(
+        #     'ffmpeg', self.ctx).get_build_dir(arch.arch), "dist", 'lib')
+        env["FFMPEG_INCLUDE_DIR"] = '/Users/ivc/kivy/mobile-ffmpeg/prebuilt/ios-universal/ffmpeg-universal/include'
+        env["FFMPEG_LIB_DIR"] = '/Users/ivc/kivy/mobile-ffmpeg/prebuilt/ios-universal/ffmpeg-universal/lib'
         env["CONFIG_POSTPROC"] = "0"
 
-        env["USE_SDL2_MIXER"] = '0'
+        env["USE_SDL2_MIXER"] = '1'
         env['HAS_SDL2'] = '1'
         # import sys
         # env['PYTHONPATH'] = '/Users/ivc/kivy/.env3/lib/python3.7/site-packages'

@@ -20,11 +20,11 @@ class KivyRecipe(CythonRecipe):
             join(self.ctx.dist_dir, "include", "common", "sdl2_mixer")])
         return env
 
-    def prebuild_arch(self, arch):
-        # common to all archs
-        if  self.has_marker("patched"):
-            return
-        self.apply_patch('enable-ios-camera.patch')
+    # def prebuild_arch(self, arch):
+    #     # common to all archs
+    #     if  self.has_marker("patched"):
+    #         return
+    #     self.apply_patch('enable-ios-camera.patch')
 
     def build_arch(self, arch):
         self._patch_setup()
