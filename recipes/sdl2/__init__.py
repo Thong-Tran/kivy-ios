@@ -3,7 +3,7 @@ import sh
 
 
 class LibSDL2Recipe(Recipe):
-    version = "2.0.8"
+    version = "2.0.9"
     url = "https://www.libsdl.org/release/SDL2-{version}.tar.gz"
     #version = "iOS-improvements"
     #url = "https://bitbucket.org/slime73/sdl-experiments/get/{version}.tar.gz"
@@ -18,6 +18,10 @@ class LibSDL2Recipe(Recipe):
         if self.has_marker("patched"):
             return
         self.apply_patch("uikit-transparent.patch")
+
+        if self.version == '2.0.9':
+            self.apply_patch('fix-non-alpabet.patch')
+
         self.set_marker("patched")
 
     def build_arch(self, arch):
