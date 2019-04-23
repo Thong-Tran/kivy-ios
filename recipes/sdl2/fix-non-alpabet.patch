@@ -9,7 +9,7 @@ index 49a39b6bc..81ad6820b 100644
 +    } else if (changeText!=nil && textField.markedTextRange != nil){
 +        NSUInteger len = changeText.length;
 +        if (len > 0) {
-+            SDL_SendEditingText([changeText UTF8String], 0, 0);
++            SDL_SendEditingText([[[textField textInRange: textField.markedTextRange] stringByReplacingOccurrencesOfString:@"\u2006" withString:@""] UTF8String], 0, 0);
 +        }
      }
  }
@@ -19,7 +19,7 @@ index 49a39b6bc..81ad6820b 100644
              SDL_SendKeyboardKey(SDL_PRESSED, SDL_SCANCODE_BACKSPACE);
              SDL_SendKeyboardKey(SDL_RELEASED, SDL_SCANCODE_BACKSPACE);
 +        } else {
-+            SDL_SendEditingText([@"IOS_BACKSPACE" UTF8String], 0, 0);
++            SDL_SendEditingText([[[textField textInRange: textField.markedTextRange] stringByReplacingOccurrencesOfString:@"\u2006" withString:@""] UTF8String], 0, 0);
          }
          if (textField.text.length < 16) {
              textField.text = obligateForBackspace;
