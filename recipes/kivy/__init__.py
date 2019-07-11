@@ -3,7 +3,7 @@ from os.path import join
 
 
 class KivyRecipe(CythonRecipe):
-    version = "1.10.1"
+    version = "1.11.1"
     url = "https://github.com/kivy/kivy/archive/{version}.zip"
     library = "libkivy.a"
     depends = ["sdl2", "sdl2_image", "sdl2_mixer", "sdl2_ttf", "ios",

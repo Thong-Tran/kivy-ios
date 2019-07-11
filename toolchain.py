@@ -1041,6 +1041,13 @@ class PythonRecipe(Recipe):
         chdir(build_dir)
         hostpython = sh.Command(self.ctx.hostpython)
         iosbuild = join(build_dir, "iosbuild")
+
+        # Fix error: bad install directory or PYTHONPATH
+        # You are attempting to install a package to a directory that is not
+        # on PYTHONPATH and which Python does not read ".pth" files from.
+        cmd = sh.Command("sed")
+        shprint(cmd, "-i", "", "s/setuptools/distutils.core/g", "./setup.py", _env=env)
+
         shprint(hostpython, "setup.py", "install", "-O2",
                 "--prefix", iosbuild,
                 _env=env)

@@ -148,7 +148,8 @@ void export_orientation() {
 
 void load_custom_builtin_importer() {
     static const char *custom_builtin_importer = \
-        "import sys, imp, types\n" \
+        "import sys, types\n" \
+        "from importlib.machinery import ExtensionFileLoader\n" \
         "from os import environ\n" \
         "from os.path import exists, join\n" \
         "try:\n" \
@@ -186,11 +187,11 @@ void load_custom_builtin_importer() {
         "        if mod is None:\n" \
         "            # print('LOAD DYNAMIC', f, sys.modules.keys())\n" \
         "            try:\n" \
-        "                mod = imp.load_dynamic(f, f)\n" \
+        "                mod = ExtensionFileLoader(f, f).load_module()\n" \
         "            except ImportError:\n" \
         "                import traceback; traceback.print_exc();\n" \
         "                # print('LOAD DYNAMIC FALLBACK', fullname)\n" \
-        "                mod = imp.load_dynamic(fullname, fullname)\n" \
+        "                mod = ExtensionFileLoader(fullname, fullname).load_module()\n" \
         "            sys.modules[fullname] = mod\n" \
         "            return mod\n" \
         "        return mod\n" \
